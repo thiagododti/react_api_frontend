@@ -1,19 +1,12 @@
 // app/layout.tsx
-import '../styles/globals.css';
-import { ReactNode } from 'react';
-import { AuthProvider } from '@/app/context/AuthProvider';
+import { AuthProvider } from '../context/AuthContext';
 
-export const metadata = {
-  title: 'My Next.js App',
-  description: 'App frontend com Next.js e Django backend'
-};
-
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html>
       <body>
         <AuthProvider>
-          <div className="container">{children}</div>
+          {children}
         </AuthProvider>
       </body>
     </html>
