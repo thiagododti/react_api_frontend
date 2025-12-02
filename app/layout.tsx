@@ -1,19 +1,13 @@
-function PublicLayout({
+import "./globals.css";
+
+export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html>
-            <body>
-                <div>
-                    Publico
-                    {children}
-                </div>
-            </body>
+        <html lang="pt-br">
+            <body>{children}</body>
         </html>
     );
 }
-
-
-export default PublicLayout;
