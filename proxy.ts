@@ -66,3 +66,5 @@ export const config: MiddlewareConfig = {
         '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
     ]
 };
+
+export default middleware;
