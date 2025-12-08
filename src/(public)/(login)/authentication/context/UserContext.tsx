@@ -1,0 +1,92 @@
+"use client";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { decodeJwtPayload, getCookie, deleteCookie } from "@/src/(public)/(login)/authentication/lib/auth";
+import { apiFetch } from "@/src/(public)/(login)/authentication/lib/apiClient";
+import { useRouter } from "next/navigation";
+
+type User = {
+    id: string;
+    username?: string;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    // adicione campos conforme seu /api/usuario/{id}/
+};
+
+type UserContextValue = {
+    user: User | null;
+    loading: boolean;
+    refreshUser: () => Promise<void>;
+    signOut: () => void;
+};
+
+const UserContext = createContext<UserContextValue | undefined>(undefined);
+
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const router = useRouter();
+
+    const fetchUser = async (userId: string) => {
+        try {
+            // usa seu apiFetch (que lida com refresh de token)
+            const res = await apiFetch(`/usuario/${userId}/`);
+            if (!res.ok) {
+                setUser(null);
+                return;
+            }
+            const data = await res.json();
+            setUser(data);
+        } catch (error) {
+            setUser(null);
+        }
+    };
+
+    const refreshUser = async () => {
+        setLoading(true);
+        try {
+            const access = getCookie("access_token");
+            if (!access) {
+                setUser(null);
+                return;
+            }
+            const payload = decodeJwtPayload(access);
+            const userId = payload?.user_id ?? payload?.sub ?? null;
+            if (userId) {
+                await fetchUser(String(userId));
+            } else {
+                setUser(null);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        // Ao montar, tenta buscar dados do usuário
+        refreshUser();
+        // opcional: adicionar um intervalo para refresh periódico do user (ex.: cada 5 min)
+        // const timer = setInterval(refreshUser, 5 * 60 * 1000);
+        // return () => clearInterval(timer);
+    }, []);
+
+    const signOut = () => {
+        // Limpa cookies e redireciona para /login
+        deleteCookie("access_token");
+        deleteCookie("refresh_token");
+        setUser(null);
+        router.push("/login");
+    };
+
+    return (
+        <UserContext.Provider value={{ user, loading, refreshUser, signOut }}>
+            {children}
+        </UserContext.Provider>
+    );
+};
+
+export function useUserContext() {
+    const ctx = useContext(UserContext);
+    if (!ctx) throw new Error("useUserContext must be used within UserProvider");
+    return ctx;
+}
