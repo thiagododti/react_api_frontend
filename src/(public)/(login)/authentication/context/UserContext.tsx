@@ -1,9 +1,11 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { decodeJwtPayload, getCookie, deleteCookie } from "@/src/(public)/(login)/authentication/lib/auth";
 import { apiFetch } from "@/src/(public)/(login)/authentication/lib/apiClient";
 import { useRouter } from "next/navigation";
-import { User, UserContextValue } from "../types/UserTypes";
+import { User, UserContextValue } from "@/src/(public)/(login)/authentication/types/authTypes";
+
+
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
@@ -24,10 +26,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(data);
         } catch (error) {
             setUser(null);
+            console.error("Erro ao buscar usuário:", error);
         }
     };
 
-    const refreshUser = async () => {
+    const refreshUser = useCallback(async () => {
         setLoading(true);
         try {
             const access = getCookie("access_token");
@@ -45,7 +48,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         let previousToken = getCookie("access_token");
@@ -65,7 +68,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshUser();
 
         return () => clearInterval(interval);
-    }, []);
+    }, [refreshUser]);
 
     const signOut = () => {
         // Limpa cookies e redireciona para /login

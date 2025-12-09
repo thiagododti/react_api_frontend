@@ -1,5 +1,6 @@
 // src/lib/apiClient.ts
-import { API_BASE, getCookie, setCookie, deleteCookie, isTokenExpired } from './auth';
+import { API_BASE, getCookie, setCookie, deleteCookie, isTokenExpired, decodeJwtPayload } from './auth';
+import type { TokenRefreshResponse } from '../types/authTypes';
 
 const REFRESH_ENDPOINT = `${API_BASE}/token/refresh/`; // ajuste se necessário
 const TOKEN_ENDPOINT = `${API_BASE}/token/`; // endpoint de login
@@ -20,26 +21,16 @@ async function requestRefresh(): Promise<string | null> {
       return null;
     }
 
-    const data = await res.json();
+    const data: TokenRefreshResponse = await res.json();
     // supondo resposta: { access: "...", refresh?: "..." }
     if (data.access) {
-      // decodificar para pegar exp e setar cookie com exp coerente
-      const payload = (() => {
-        try {
-          const parts = data.access.split('.');
-          const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
-          return JSON.parse(decodeURIComponent(
-            payloadStr.split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
-          ));
-        } catch { return null; }
-      })();
-
+      const payload = decodeJwtPayload(data.access);
       const exp = payload?.exp;
       if (exp) setCookie('access_token', data.access, exp);
       else setCookie('access_token', data.access);
 
       if (data.refresh) {
-        const refreshPayload = data.refresh.split ? (JSON.parse(atob(data.refresh.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))) : null;
+        const refreshPayload = decodeJwtPayload(data.refresh);
         const refreshExp = refreshPayload?.exp;
         if (refreshExp) setCookie('refresh_token', data.refresh, refreshExp);
         else setCookie('refresh_token', data.refresh);
@@ -48,11 +39,12 @@ async function requestRefresh(): Promise<string | null> {
     }
     return null;
   } catch (err) {
+    console.error('Token refresh error:', err);
     return null;
   }
 }
 
-export async function apiFetch(input: RequestInfo, init: RequestInit = {}) {
+export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   // normalize url
   const url = typeof input === 'string' && input.startsWith('/') ? `${API_BASE}${input}` : input;
   let accessToken = getCookie('access_token');

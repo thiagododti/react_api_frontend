@@ -1,12 +1,14 @@
 // src/lib/auth.ts
+import type { JwtPayload } from '../types/authTypes';
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
-export function getCookie(name: string) {
+export function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
   return match ? decodeURIComponent(match[2]) : null;
 }
 
-export function setCookie(name: string, value: string, expiresAtSeconds?: number) {
+export function setCookie(name: string, value: string, expiresAtSeconds?: number): void {
   let cookie = `${name}=${encodeURIComponent(value)}; path=/;`;
   if (expiresAtSeconds) {
     const expiresDate = new Date(expiresAtSeconds * 1000).toUTCString();
@@ -16,12 +18,12 @@ export function setCookie(name: string, value: string, expiresAtSeconds?: number
   document.cookie = cookie;
 }
 
-export function deleteCookie(name: string) {
+export function deleteCookie(name: string): void {
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
 }
 
 // Decodifica payload do JWT sem dependências
-export function decodeJwtPayload(token: string) {
+export function decodeJwtPayload(token: string): JwtPayload | null {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -35,13 +37,13 @@ export function decodeJwtPayload(token: string) {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     );
-    return JSON.parse(json);
+    return JSON.parse(json) as JwtPayload;
   } catch {
     return null;
   }
 }
 
-export function isTokenExpired(accessToken: string | null) {
+export function isTokenExpired(accessToken: string | null): boolean {
   if (!accessToken) return true;
   const payload = decodeJwtPayload(accessToken);
   if (!payload || !payload.exp) return true;
