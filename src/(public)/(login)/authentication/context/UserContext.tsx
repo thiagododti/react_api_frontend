@@ -3,22 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { decodeJwtPayload, getCookie, deleteCookie } from "@/src/(public)/(login)/authentication/lib/auth";
 import { apiFetch } from "@/src/(public)/(login)/authentication/lib/apiClient";
 import { useRouter } from "next/navigation";
-
-type User = {
-    id: string;
-    username?: string;
-    email?: string;
-    first_name?: string;
-    last_name?: string;
-    // adicione campos conforme seu /api/usuario/{id}/
-};
-
-type UserContextValue = {
-    user: User | null;
-    loading: boolean;
-    refreshUser: () => Promise<void>;
-    signOut: () => void;
-};
+import { User, UserContextValue } from "../types/UserTypes";
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
@@ -63,11 +48,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        // Ao montar, tenta buscar dados do usuário
+        let previousToken = getCookie("access_token");
+
+        // Verificar a cada 500ms se o token mudou
+        const interval = setInterval(() => {
+            const currentToken = getCookie("access_token");
+
+            // Se o token mudou (novo login), refresh dos dados
+            if (currentToken !== previousToken && currentToken) {
+                previousToken = currentToken;
+                refreshUser();
+            }
+        }, 500);
+
+        // Também executar na primeira montagem
         refreshUser();
-        // opcional: adicionar um intervalo para refresh periódico do user (ex.: cada 5 min)
-        // const timer = setInterval(refreshUser, 5 * 60 * 1000);
-        // return () => clearInterval(timer);
+
+        return () => clearInterval(interval);
     }, []);
 
     const signOut = () => {
