@@ -1,4 +1,4 @@
-import { UserProvider } from "@/src/(public)/(login)/authentication/context/UserContext";
+import { UserProvider } from "@/src/context/(user)/UserContext";
 import "./globals.css";
 
 
