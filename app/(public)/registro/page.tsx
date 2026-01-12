@@ -1,10 +1,7 @@
-function Registro() {
+export default function Registro() {
   return (
-    <main>
-      <h1>Registro</h1>
-    </main>
+    <div>
+      <h1>Registro Page</h1>
+    </div>
   );
 }
-
-
-export default Registro;
