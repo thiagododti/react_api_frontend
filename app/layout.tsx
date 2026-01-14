@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { QueryProvider } from "@/providers/QueryProvider";
+import { ChildrenProps } from "@/types/ChildrenProps";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -9,19 +10,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<ChildrenProps>) {
   return (
-    <html lang="en">
+    <html>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body className=" min-h-screen">
-        <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
+        <QueryProvider>
+          <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -1,7 +1,5 @@
-export function PrivateLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+import { ChildrenProps } from "@/types/ChildrenProps";
+
+export default function PrivateLayout({ children, }: Readonly<ChildrenProps>) {
   return <>{children}</>;
 }

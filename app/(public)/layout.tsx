@@ -1,7 +1,5 @@
-export default function PublicLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+import { ChildrenProps } from "@/types/ChildrenProps";
+
+export default function PublicLayout({ children }: Readonly<ChildrenProps>) {
   return <>{children}</>;
 }
